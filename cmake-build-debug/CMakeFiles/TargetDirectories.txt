@@ -1,0 +1,3 @@
+/home/dev_02/cpp/cppserver-linux/cmake-build-debug/CMakeFiles/cppserver_linux.dir
+/home/dev_02/cpp/cppserver-linux/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/dev_02/cpp/cppserver-linux/cmake-build-debug/CMakeFiles/rebuild_cache.dir
