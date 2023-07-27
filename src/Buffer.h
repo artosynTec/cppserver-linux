@@ -32,7 +32,7 @@ public:
 
     int appendString(const string data);
 
-    //2，接受套接字数据读数据 返回接受数据大小
+    // 2，接受套接字数据读数据 返回接受数据大小
     int socketRead(int fd);
 
     // 找到其在数据块中的位置，返回改地址根据 空格换行 取出一行  根据\r\n

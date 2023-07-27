@@ -17,8 +17,9 @@ EventLoop::EventLoop() : EventLoop(string()) {
 EventLoop::EventLoop(const string threadName) {
     // 刚开始evenloop没有运行
     m_isQuit = true;
-    m_threadID = this_thread::get_id(); // 当前线程的ID
-    //子线程动态名字，主线程动态名字
+    // 当前线程的ID
+    m_threadID = this_thread::get_id();
+    // 子线程动态名字，主线程动态名字
     m_threadName = m_threadName == string() ? "MainThread" : threadName;
     //
     m_dispatcher = new EpollDispatcher(this); // 选择模型
@@ -33,17 +34,14 @@ EventLoop::EventLoop(const string threadName) {
 #if 0
     // 指定规则:evLoop->socketPair[0] 发送数据，evLoop->socketPair[1]接受数据
     // 接受数据添加到dispatcher检测文件描述符的集合中  ,readlocalMessage读事件对应的回调函数
-    Channel* channel = new Channel(m_socketPair[1], FDEvent::ReadEvent,
-        readlocalMessage, nullptr, nullptr, this);
+    Channel* channel = new Channel(m_socketPair[1], FDEvent::ReadEvent,readlocalMessage, nullptr, nullptr, this);
 #else
     // TODO 消化绑定 bind-绑定器，function类的成员函数无法对类的成员函数直接打包
     auto obj = bind(&EventLoop::readMessage, this);
-    Channel *channel = new Channel(m_socketPair[1], FDEvent::ReadEvent,
-                                   obj, nullptr, nullptr, this);
+    Channel *channel = new Channel(m_socketPair[1], FDEvent::ReadEvent, obj, nullptr, nullptr, this);
 #endif
-    //channel 添加到任务队列
+    // channel 添加到任务队列
     AddTask(channel, ElemType::ADD);
-
 }
 
 EventLoop::~EventLoop() {
@@ -105,15 +103,15 @@ int EventLoop::AddTask(Channel *channel, ElemType type) {
     *       不能让主线程处理任务队列，需要由当前的子线程处理
     */
     if (m_threadID == this_thread::get_id()) {
-        //当前子线程
+        // 当前子线程
         // 直接处理任务队列中的任务
         ProcessTaskQ();
     } else {
-        //主线程 -- 告诉子线程处理任务队列中的任务
+        // 主线程 -- 告诉子线程处理任务队列中的任务
         // 1,子线程在工作 2，子线程被阻塞了：1，select,poll,epoll,如何解除其阻塞，在本代码阻塞时长是2s
         // 在检测集合中添加属于自己(额外)的文件描述，不负责套接字通信，目的控制文件描述符什么时候有数据,辅助解除阻塞
         // 满足条件，两个文件描述符，可以相互通信，//1，使用pipe进程间通信，进程更可，//2，socketpair 文件描述符进行通信
-        taskWakeup(); //主线程调用，相当于向socket添加了数据
+        taskWakeup(); // 主线程调用，相当于向socket添加了数据
     }
     return 0;
 }
@@ -121,28 +119,29 @@ int EventLoop::AddTask(Channel *channel, ElemType type) {
 int EventLoop::ProcessTaskQ() {
     //遍历链表
     while (!m_taskQ.empty()) {
-        //将处理后的task从当前链表中删除，(需要加锁)
+        // 将处理后的task从当前链表中删除，(需要加锁)
         // 取出头结点
         m_mutex.lock();
         ChannelElement *node = m_taskQ.front(); //从头部
-        m_taskQ.pop();  //把头结点弹出，相当于删除 
+        // 把头结点弹出，相当于删除
+        m_taskQ.pop();  
 
         m_mutex.unlock();
-        //读链表中的Channel,根据Channel进行处理
+        // 读链表中的Channel,根据Channel进行处理
         Channel *channel = node->channel;
         // 判断任务类型
         if (node->type == ElemType::ADD) {
             // 需要channel里面的文件描述符evLoop里面的数据
-            //添加  -- 每个功能对应一个任务函数，更利于维护
+            // 添加  -- 每个功能对应一个任务函数，更利于维护
             Add(channel);
         } else if (node->type == ElemType::DELETE) {
-            //Debug("断开了连接");
-            //删除
+            // Debug("断开了连接");
+            // 删除
             Remove(channel);
             // 需要资源释放channel 关掉文件描述符，地址堆内存释放，channel和dispatcher的关系需要删除
 
         } else if (node->type == ElemType::MODIFY) {
-            //修改  的文件描述符事件
+            // 修改  的文件描述符事件
             Modify(channel);
         }
         delete node;
@@ -151,27 +150,27 @@ int EventLoop::ProcessTaskQ() {
 }
 
 int EventLoop::Add(Channel *channel) {
-    //把任务节点中的任务添加到dispatcher对应的检测集合里面，
+    // 把任务节点中的任务添加到dispatcher对应的检测集合里面，
     int fd = channel->getSocket();
-    //找到fd对应数组元素的位置，并存储
+    // 找到fd对应数组元素的位置，并存储
     if (m_channelmap.find(fd) == m_channelmap.end()) {
-        m_channelmap.insert(make_pair(fd, channel)); //将当前fd和channel添加到map
-        m_dispatcher->setChannel(channel); //设置当前channel
-        int ret = m_dispatcher->add();  //加入
+        m_channelmap.insert(make_pair(fd, channel)); // 将当前fd和channel添加到map
+        m_dispatcher->setChannel(channel); // 设置当前channel
+        int ret = m_dispatcher->add();  // 加入
         return ret;
     }
     return -1;
 }
 
 int EventLoop::Remove(Channel *channel) {
-    //调用dispatcher的remove函数进行删除
+    // 调用dispatcher的remove函数进行删除
     // 将要删除的文件描述符
     int fd = channel->getSocket();
     // 判断文件描述符是否已经在检测的集合了
     if (m_channelmap.find(fd) == m_channelmap.end()) {
         return -1;
     }
-    //从检测集合中删除 封装了poll,epoll select
+    // 从检测集合中删除 封装了poll,epoll select
     m_dispatcher->setChannel(channel);
     int ret = m_dispatcher->remove();
     return ret;
@@ -184,7 +183,7 @@ int EventLoop::Modify(Channel *channel) {
     if (m_channelmap.find(fd) == m_channelmap.end()) {
         return -1;
     }
-    //从检测集合中删除
+    // 从检测集合中删除
     m_dispatcher->setChannel(channel);
     int ret = m_dispatcher->modify();
     return ret;
@@ -195,7 +194,7 @@ int EventLoop::freeChannel(Channel *channel) {
     auto it = m_channelmap.find(channel->getSocket());
     if (it != m_channelmap.end()) {
 
-        m_channelmap.erase(it); //删除对应的迭代器
+        m_channelmap.erase(it); // 删除对应的迭代器
         // 关闭fd
         close(channel->getSocket());
         delete channel;
@@ -206,13 +205,13 @@ int EventLoop::freeChannel(Channel *channel) {
 int EventLoop::readlocalMessage(void *arg) {
     EventLoop *evLoop = static_cast<EventLoop *>(arg);
     char buf[256];
-    read(evLoop->m_socketPair[1], buf, sizeof(buf)); //目的仅为触发一次读事件，检测文件描述符解除阻塞
+    read(evLoop->m_socketPair[1], buf, sizeof(buf)); // 目的仅为触发一次读事件，检测文件描述符解除阻塞
     return 0;
 }
 
 int EventLoop::readMessage() {
     char buf[256];
-    read(m_socketPair[1], buf, sizeof(buf)); //目的仅为触发一次读事件，检测文件描述符解除阻塞
+    read(m_socketPair[1], buf, sizeof(buf)); // 目的仅为触发一次读事件，检测文件描述符解除阻塞
     return 0;
 }
 

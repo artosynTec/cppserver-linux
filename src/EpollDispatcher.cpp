@@ -7,13 +7,13 @@
 
 // 用户传给子类的evLoop传递给父类，让父类保存起来
 EpollDispatcher::EpollDispatcher(EventLoop *evLoop) : Dispatcher(evLoop) {
-    //创建了epoll根节点
+    // 创建了epoll根节点
     m_epfd = epoll_create(10);
     if (m_epfd == -1) {
         perror("epoll create");
         exit(0);
     }
-    //为结构体指针分配内存，数组，根据数组的容量分配若干个结构体大小的数据块
+    // 为结构体指针分配内存，数组，根据数组的容量分配若干个结构体大小的数据块
     // calloc比malloc更简单，除了分配内存，还为初始化的内存初始化为0
     // Max节点个数，单个节点内存大小
     m_events = new struct epoll_event[m_maxNode];
@@ -59,7 +59,7 @@ int EpollDispatcher::modify() {
 int EpollDispatcher::epollCtl(int op) {
     struct epoll_event ev;
     ev.data.fd = m_channel->getSocket(); //要检查的文件描述符
-    //由于channel的读写事件由自己定义，需要判断进行设置
+    // 由于channel的读写事件由自己定义，需要判断进行设置
     // 按位与 只有对应的二进制11才为1，若不等于0，则等于ReadEvent对应的值
     int events = 0;
     if (m_channel->getEvent() & (int) FDEvent::ReadEvent) { //ReadEvent自定义，按位与
@@ -71,7 +71,7 @@ int EpollDispatcher::epollCtl(int op) {
         events |= EPOLLOUT;
     }
     ev.events = events;
-    //把传过来的channel的文件描述符添加到epoll树上，需要检测channel事件
+    // 把传过来的channel的文件描述符添加到epoll树上，需要检测channel事件
     // 检测channel->fd对应的什么事件 最后文件描述符的什么事件
 
     int ret = epoll_ctl(m_epfd, op, m_channel->getSocket(), &ev);
@@ -86,24 +86,24 @@ int EpollDispatcher::dispatch(int timeout) {
     }
     // 遍历文件描述符
     for (int i = 0; i < count; ++i) {
-        //在for循环中把有效循环依次取出，将对应的事件和文件描述符保存下来
+        // 在for循环中把有效循环依次取出，将对应的事件和文件描述符保存下来
         int events = m_events[i].events;
         int fd = m_events[i].data.fd;
-        //判断是否出现异常，若出现异常直接从epoll树上删除
+        // 判断是否出现异常，若出现异常直接从epoll树上删除
         // EPOLLERR对端断开连接之后，EPOLLHUP对端断开连接仍然发数据产生的错误
         if (events & EPOLLERR || events & EPOLLHUP) {
-            //对方断开了连接，删除fd
-            //epollRemove(Channel, evLoop);
+            // 对方断开了连接，删除fd
+            // epollRemove(Channel, evLoop);
             continue;
         }
 
         if (events & EPOLLIN) {
-            //读
+            // 读
             m_evLoop->eventActive(fd, (int) FDEvent::ReadEvent);
         }
         
         if (events & EPOLLOUT) {
-            //写
+            // 写
             m_evLoop->eventActive(fd, (int) FDEvent::WriteEvent);
         }
     }

@@ -6,11 +6,9 @@
 // argv[0]可执行程序的名称 
 // argv[1]传入的第一个参数， port
 // argv[2]传入的第二个参数   path
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
 #if 0
-    if (argc < 3)
-    {
+    if (argc < 3) {
         printf("./a.out port path\n");
         return -1;
     }

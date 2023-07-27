@@ -2,8 +2,8 @@
 #include <stdlib.h>
 
 Channel::Channel(int fd, FDEvent events, handleFunc readFunc, handleFunc writeFunc, handleFunc destoryFunc, void *arg) {
-    //对结构体初始化
-    m_arg = arg;  //保存了反映堆模型初始化数据
+    // 对结构体初始化
+    m_arg = arg;  // 保存了反映堆模型初始化数据
     m_fd = fd;
     m_events = (int) events;
     readCallback = readFunc;
@@ -11,7 +11,7 @@ Channel::Channel(int fd, FDEvent events, handleFunc readFunc, handleFunc writeFu
     destoryCallback = destoryFunc;
 }
 
-//添加写属性
+// 添加写属性
 // 若对应为10 想要写添加写属性，与100异或，的110读写属性
 // 如不写，第三位清零，若为110，第三位清零，将写取反011，在按位与& 010只留下读事件
 void Channel::writeEventEnable(bool flag) {
@@ -26,5 +26,5 @@ void Channel::writeEventEnable(bool flag) {
 }
 
 bool Channel::isWriteEventEnable() {
-    return m_events & static_cast<int>(FDEvent::WriteEvent);  //按位与 ，第三位都是1，则是写，如果成立，最后大于0，如果不成立，最后为0
+    return m_events & static_cast<int>(FDEvent::WriteEvent);  // 按位与 ，第三位都是1，则是写，如果成立，最后大于0，如果不成立，最后为0
 }

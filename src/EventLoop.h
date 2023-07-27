@@ -14,7 +14,7 @@ enum class ElemType : char {
     DELETE,
     MODIFY
 };
-//定义任务队列的节点 类型，文件描述符信息
+// 定义任务队列的节点 类型，文件描述符信息
 struct ChannelElement {
     ElemType type;       // 如何处理该节点中Channel
     Channel *channel;   // 文件描述符信息
