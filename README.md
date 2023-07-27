@@ -779,7 +779,7 @@ int main(int argc, char* argv[])
 ![客户端请求](https://mmbiz.qpic.cn/mmbiz_jpg/ORog4TEnkbvYbuq71ib9iaeQVznZ5coWaybSQDFav1DdHFxBZibVBXqrYg9mNEEaZMdZVZibvwtDF0A8fRZSGoFEZA/640?wx_fmt=jpeg "客户端请求")
 
 
-# 详细代码
+# 原始代码
 
 > [Github](https://github.com/foryouos/cppserver-linux/tree/main/c_simple_server/cpp_server)[^1]
 
