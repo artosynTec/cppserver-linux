@@ -17,13 +17,13 @@ EventLoop::EventLoop() : EventLoop(string()) {
 EventLoop::EventLoop(const string threadName) {
     // 刚开始evenloop没有运行
     m_isQuit = true;
-    m_threadID = this_thread::get_id(); //当前线程的ID
+    m_threadID = this_thread::get_id(); // 当前线程的ID
     //子线程动态名字，主线程动态名字
     m_threadName = m_threadName == string() ? "MainThread" : threadName;
     //
-    m_dispatcher = new EpollDispatcher(this); //选择模型
+    m_dispatcher = new EpollDispatcher(this); // 选择模型
 
-    m_channelmap.clear();  //清空操作
+    m_channelmap.clear();  // 清空操作
     // 线程通信socketpair初始化//evLoop->socketPair传出参数，通信是两个，0发数据，通过1读出，反之相反
     int ret = socketpair(AF_UNIX, SOCK_STREAM, 0, m_socketPair);
     if (ret == -1) {
@@ -75,11 +75,11 @@ int EventLoop::eventActive(int fd, int event) {
     Channel *channel = m_channelmap[fd]; //channelmap根据对应的fd取出对应的channel
     // 判断取出channel的fd与当前的fd是否相同
     assert(channel->getSocket() == fd); //如果为假，打印出报错信息
-    if (event & (int) FDEvent::ReadEvent && channel->readCallback) //channel->readCallback不等于空
-    {
+    if (event & (int) FDEvent::ReadEvent && channel->readCallback) { //channel->readCallback不等于空
         //调用channel的读回调函数
         channel->readCallback(const_cast<void *>(channel->getArg()));
     }
+
     if (event & (int) FDEvent::WriteEvent && channel->writeCallback) {
         channel->writeCallback(const_cast<void *>(channel->getArg()));
     }

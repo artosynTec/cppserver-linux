@@ -8,9 +8,9 @@ using namespace std;
 //定义文件描述符的读写事件，使用枚举   自定义
 // C++11 强类型枚举
 enum class FDEvent {
-    TimeOut = 0x01,       //十进制1，超时了 1
-    ReadEvent = 0x02,    //十进制2        10
-    WriteEvent = 0x04   //十进制4  二进制 100
+    TimeOut     = 0x01,         //十进制1，超时了 1
+    ReadEvent   = 0x02,         //十进制2        10
+    WriteEvent  = 0x04          //十进制4  二进制 100
 };
 // 可调用对象包装器打包：函数指针，可调用对象(可以向函数一样使用)
 // 最终得到了地址，但是没有调用

@@ -62,13 +62,12 @@ int EpollDispatcher::epollCtl(int op) {
     //由于channel的读写事件由自己定义，需要判断进行设置
     // 按位与 只有对应的二进制11才为1，若不等于0，则等于ReadEvent对应的值
     int events = 0;
-    if (m_channel->getEvent() & (int) FDEvent::ReadEvent) //ReadEvent自定义，按位与
-    {
+    if (m_channel->getEvent() & (int) FDEvent::ReadEvent) { //ReadEvent自定义，按位与
         //保存相应的读事件
         events |= EPOLLIN; //将EPOLLIN（也是整形数） 按位或（相同为0 异为1） 记录当当前整型变量当中
     }
-    if (m_channel->getEvent() & (int) FDEvent::WriteEvent) //不用else if,某些时候读写都存在
-    {
+
+    if (m_channel->getEvent() & (int) FDEvent::WriteEvent) { //不用else if,某些时候读写都存在
         events |= EPOLLOUT;
     }
     ev.events = events;
@@ -97,10 +96,12 @@ int EpollDispatcher::dispatch(int timeout) {
             //epollRemove(Channel, evLoop);
             continue;
         }
+
         if (events & EPOLLIN) {
             //读
             m_evLoop->eventActive(fd, (int) FDEvent::ReadEvent);
         }
+        
         if (events & EPOLLOUT) {
             //写
             m_evLoop->eventActive(fd, (int) FDEvent::WriteEvent);
